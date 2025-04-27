@@ -1,0 +1,10 @@
+Flask==3.0.2
+Flask-SQLAlchemy==3.1.1
+Flask-Migrate==4.0.5
+Flask-JWT-Extended==4.6.0
+PyMySQL==1.1.0
+SQLAlchemy==2.0.40
+Werkzeug==3.0.1
+alembic==1.13.1
+python-dotenv==1.1.0
+cryptography==44.0.2

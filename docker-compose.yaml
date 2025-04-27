@@ -1,0 +1,48 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: tcg_app
+    ports:
+      - "8081:5000"
+    env_file:
+      - .env
+    volumes:
+      - .:/tcg_app
+    restart: unless-stopped
+    command: >
+      sh -c "flask db upgrade && flask run --host=0.0.0.0"
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  mysql:
+    image: mysql:latest
+    container_name: tcg_mysql
+    env_file:
+      - .env
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "tcg_mysql"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    container_name: tcg_phpmyadmin
+    env_file:
+      - .env
+    ports:
+      - "8080:80"
+    restart: unless-stopped
+    depends_on:
+      - mysql
+
+volumes:
+  mysql_data:
