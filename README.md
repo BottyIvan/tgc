@@ -61,7 +61,7 @@ TCG Manager is a web application designed to help users manage their trading car
 
 - **Add Card**: Add a new card to your collection.
 - **View Cards**: Browse your card collection.
-- **Edit Card**: Update card details (feature under development).
+- **Edit Card**: Update card details.
 - **Delete Card**: Remove a card from your collection.
 
 ### Profile Management
@@ -103,6 +103,7 @@ tgc/
 - `GET /cards`: Retrieve all cards for the logged-in user.
 - `GET /cards/<cardId>`: Retrieve details of a specific card.
 - `POST /cards/add`: Add a new card.
+- `PUT /cards/update/<cardId>`: Update details of a specific card.
 - `DELETE /cards/delete/<cardId>`: Delete a card.
 
 ### Profile
