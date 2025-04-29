@@ -193,7 +193,7 @@ const viewCardDetails = async (cardId) => {
     }
 
     const form = document.getElementById("editCardForm");
-    const url = `/cards/edit/${cardId}`;
+    const url = `/cards/update/${cardId}`;
     const method = "PUT";
     try {
       const request = await fetch(url, {
