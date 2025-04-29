@@ -1,6 +1,6 @@
 import os
 # Import methods from model files
-from .cards import getAllCards, getCardById, insertCard, deleteCard
+from .cards import getAllCards, getCardById, insertCard, deleteCard, editCard
 from .users import insertUser, loggingUser, getUserById
 
 # Import Flask and other necessary modules
@@ -95,9 +95,39 @@ def card(cardId):
 @main.route("/cards/update/<cardId>", methods=["PUT"])
 @jwt_required(locations=["cookies"])
 def updateCard(cardId):
-    # TODO: implement the updateCard function
-    print("Update card function not implemented yet")
-    return jsonify({"error": "Update card function not implemented yet"}), 501
+    # Get the user ID from the JWT token
+    user_id = get_jwt_identity()
+    # Check if the user ID is valid
+    if not user_id:
+        return jsonify({"error": "User ID is required"}), 400
+    # Check if the user exists
+    try:
+        user = getUserById(user_id)
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+    try:
+        # Get the card by ID
+        card = getCardById(cardId)
+        if not card:
+            return jsonify({"error": "Card not found"}), 404
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+    try:
+        # Get the updated data from the request
+        data = request.get_json()
+        data['cardId'] = cardId
+        # Update the card in the database
+        # and return the updated card data
+        return jsonify(editCard(data))
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @main.route("/cards/add", methods=["POST"])
 @jwt_required(locations=["cookies"])
