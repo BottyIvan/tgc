@@ -73,3 +73,49 @@ def deleteCard(card_id):
     except Exception as e:
         print("An error occurred:", e)
         return { "error": "Failed to delete card" }, 500
+    
+def editCard(data):
+    # Validate the input data
+    required_fields = ["card_set", "card_type", "description", "image", "name", "rarity", "set_number"]
+    for field in required_fields:
+        if not data.get(field):
+            return { "error": f"{field.replace('_', ' ').capitalize()} is required" }, 400
+    
+    # Attempt to retrieve the card by ID
+    print(f"Attempting to edit card with ID: {data['cardId']}")
+    try:
+        # TODO: This should be improved to use the getCardById method
+        # to avoid code duplication
+        # and to ensure that the card exists
+        # keeping this because the getCardById method is returning a list
+        # of dictionaries instead of a single card object
+        # and we need the card object to perform updates
+        # card = Card.getCardById(data["cardId"])
+        # card = Card.query.filter_by(id=data["cardId"]).first()
+        card = Card.query.filter_by(id=data["cardId"]).first()
+        if not card:
+            return { "error": "Card not found" }, 404
+    except Exception as e:
+        return { "error": f"Failed to fetch card: {str(e)}" }, 500
+    
+    # Try to update the card in the database
+    try:
+        # Save the updated card to the database
+        card = Card.updateCard(
+            card,
+            name=data["name"],
+            description=data["description"],
+            image=data["image"],
+            card_type=data["card_type"],
+            rarity=data["rarity"],
+            card_set=data["card_set"],
+            set_number=data["set_number"]
+        )        
+    except Exception as e:
+        return { "error": f"Failed to update card in the database: {str(e)}" }, 500
+    
+    # Return the card data without the timestamps
+    data = card.toDictionary()
+    del data["created_at"]  # Don't return the created_at timestamp
+    del data["updated_at"]  # Don't return the updated_at timestamp
+    return { "message": "Card updated successfully", "card": data }
