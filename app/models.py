@@ -90,6 +90,7 @@ class Card(db.Model):
             self.card_set = card_set
         if set_number:
             self.set_number = set_number
+        self.updated_at = datetime.utcnow()
         db.session.commit()
         return self
 
