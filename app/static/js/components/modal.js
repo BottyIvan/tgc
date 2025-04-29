@@ -11,7 +11,7 @@ const setupModal = (title = null, content = null, action = null, actionText = nu
     const confirmButton = modal.querySelector(".btn-primary");
     const confirmButtonDanger = modal.querySelector(".btn-danger");
 
-    modalTitle.textContent = title;
+    modalTitle.innerHTML = title;
     modalBody.innerHTML = content;
     confirmButton.textContent = actionText || "Confirm";
     confirmButtonDanger.textContent = actionDangerText || "Delete";
