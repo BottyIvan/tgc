@@ -89,16 +89,70 @@ const viewCardDetails = async (cardId) => {
     console.error("Card not found");
     return;
   }
+
+  const cardTabs = `
+    <ul class="nav nav-underline small" id="cardDetailsTabs" role="tablist">
+      ${["view", "edit"].map(
+    (tab, i) => `
+          <li class="nav-item" role="presentation">
+            <button class="nav-link ${i === 0 ? "active" : ""}" 
+              id="${tab}-tab" data-bs-toggle="tab" data-bs-target="#${tab}" 
+              type="button" role="tab" aria-controls="${tab}" aria-selected="${i === 0}">
+              <i class="bi bi-${tab === "view" ? "eye" : "pencil"} me-1"></i> 
+              ${tab === "view" ? "View" : "Edit"}
+            </button>
+          </li>
+        `
+  ).join("")}
+    </ul>
+  `;
+
   const content = card.map((card) => `
-    <div class="text-center">
-      <img src="${card.image}" alt="${card.name}" class="img-fluid rounded mb-3 w-25">
-      <p class="text-muted mb-4">${card.description}</p>
-      <div class="text-start">
-        <p><strong>ID:</strong> ${card.id}</p>
-        <p><strong>Type:</strong> ${card.card_type}</p>
-        <p><strong>Rarity:</strong> ${card.rarity}</p>
-        <p><strong>Set:</strong> ${card.card_set}</p>
-        <p><strong>Set Number:</strong> ${card.set_number}</p>
+    <div class="tab-content">
+      <div class="tab-pane fade show active" id="view" role="tabpanel" aria-labelledby="view-tab">
+        <div class="text-center">
+          <img src="${card.image}" alt="${card.name}" class="img-fluid rounded mb-3 w-25">
+          <p class="text-muted mb-4">${card.description}</p>
+          <div class="text-start">
+            <p><strong>ID:</strong> ${card.id}</p>
+            <p><strong>Type:</strong> ${card.card_type}</p>
+            <p><strong>Rarity:</strong> ${card.rarity}</p>
+            <p><strong>Set:</strong> ${card.card_set}</p>
+            <p><strong>Set Number:</strong> ${card.set_number}</p>
+          </div>
+        </div>
+      </div>
+      <div class="tab-pane fade" id="edit" role="tabpanel" aria-labelledby="edit-tab">
+        <form id="editCardForm">
+          <div class="mb-3">
+            <label for="editCardName" class="form-label">Card Name</label>
+            <input type="text" class="form-control" id="editCardName" value="${card.name}" required>
+          </div>
+          <div class="mb-3">
+            <label for="editCardDescription" class="form-label">Description</label>
+            <textarea class="form-control" id="editCardDescription" rows="3" required>${card.description}</textarea>
+          </div>
+          <div class="mb-3">
+            <label for="editCardImage" class="form-label">Image URL</label>
+            <input type="url" class="form-control" id="editCardImage" value="${card.image}" required>
+          </div>
+          <div class="mb-3">
+            <label for="editCardType" class="form-label">Card Type</label>
+            <input type="text" class="form-control" id="editCardType" value="${card.card_type}" required>
+          </div>
+          <div class="mb-3">
+            <label for="editCardRarity" class="form-label">Rarity</label>
+            <input type="text" class="form-control" id="editCardRarity" value="${card.rarity}" required>
+          </div>
+          <div class="mb-3">
+            <label for="editCardSet" class="form-label">Card Set</label>
+            <input type="text" class="form-control" id="editCardSet" value="${card.card_set}" required>
+          </div>
+          <div class="mb-3">
+            <label for="editCardSetNumber" class="form-label">Set Number</label>
+            <input type="text" class="form-control" id="editCardSetNumber" value="${card.set_number}" required>
+          </div>
+        </form>
       </div>
     </div>
   `).join("");
@@ -132,8 +186,65 @@ const viewCardDetails = async (cardId) => {
     }
   }
 
-  const modalInstance = await setupModal('TCG: ' + card[0]?.name, content, null, null, remove, "Drop this card")();
+  const edit = async () => {
+    if (!document.getElementById("editCardForm")) {
+      console.error("Edit form not found");
+      return false;
+    }
+
+    const form = document.getElementById("editCardForm");
+    const url = `/cards/edit/${cardId}`;
+    const method = "PUT";
+    try {
+      const request = await fetch(url, {
+        method: method,
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': getCookie("csrf_access_token"),
+        },
+        body: JSON.stringify({
+          name: form.editCardName.value,
+          description: form.editCardDescription.value,
+          image: form.editCardImage.value,
+          card_type: form.editCardType.value,
+          rarity: form.editCardRarity.value,
+          card_set: form.editCardSet.value,
+          set_number: form.editCardSetNumber.value,
+        }),
+      });
+      if (!request.ok) {
+        console.error("Error editing card:", request.statusText);
+        return false;
+      }
+      const card = await request.json();
+      if (card.message) {
+        console.log(card.message);
+        window.location.hash = "#cards";
+        loadCards();
+      } else if (card[0]?.error) {
+        alert(card[0]?.error);
+      }
+      return true;
+    } catch (error) {
+      console.error("Error editing card:", error);
+      return false;
+    }
+  };
+
+  const modalInstance = await setupModal(cardTabs, content, edit, "Edit this card", remove, "Drop this card")();
   modalInstance.show();
+
+  modalInstance._element.addEventListener("shown.bs.modal", () => {
+    const editTab = document.getElementById("edit-tab");
+    const saveButton = document.querySelector(".btn-primary");
+
+    const toggleSaveButton = () => {
+      saveButton.classList.toggle("d-none", !editTab.classList.contains("active"));
+    };
+
+    toggleSaveButton(); // Initial check
+    document.getElementById("cardDetailsTabs").addEventListener("click", toggleSaveButton);
+  });
 }
 
 const addCard = async () => {
