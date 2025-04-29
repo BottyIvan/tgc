@@ -66,7 +66,7 @@ TCG Manager is a web application designed to help users manage their trading car
 
 ### Profile Management
 
-- **Update Profile**: Modify your username, email, or password.
+- **Update Profile**: Modify your username, email, or password (feature under development).
 - **Theme Customization**: Switch between light and dark themes.
 
 ## Project Structure
