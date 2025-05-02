@@ -96,3 +96,45 @@ def getUserById(user_id):
     del data["created_at"]  # Don't return the created_at timestamp
     del data["updated_at"]  # Don't return the updated_at timestamp
     return { "user": data }
+
+def updateUser(data):
+    # Hashing the password
+    try:
+        hashed_password = generate_password_hash(data["password"])
+    except Exception as e:
+        return { "error": f"Failed to hash password: {str(e)}" }, 500
+    
+    # Create a new User object
+    try:
+        user = User(
+            username=data["username"],
+            email=data["email"],
+            password=hashed_password,
+        )
+    except Exception as e:
+        return { "error": f"Failed to update user: {str(e)}" }, 500
+
+    # Check if the user already exists
+    try:
+        existing_user = user.getUserByEmail(data["email"])
+        # If the user exists and the ID is different, return an error
+        if existing_user and existing_user.id != data["user_id"]:
+            return { "error": "Email already exists" }, 400
+    except Exception as e:
+        return { "error": f"Failed to check existing user: {str(e)}" }, 500
+    
+    # Update the user in the database
+    try:
+        user.updateUser(
+            username=data["username"],
+            password=hashed_password,
+            email=data["email"],
+        )
+    except Exception as e:
+        return { "error": f"Failed to update user in database: {str(e)}" }, 500
+    
+    # Return the user data without the timestamps
+    data = user.toDictionary()
+    del data["created_at"]  # Don't return the created_at timestamp
+    del data["updated_at"]  # Don't return the updated_at timestamp
+    return { "success": "User updated successfully", "user": data }
