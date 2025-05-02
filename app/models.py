@@ -197,6 +197,7 @@ class User(db.Model):
             self.password = password
         if email:
             self.email = email
+        self.updated_at = datetime.utcnow()
         db.session.commit()
         return self
     
