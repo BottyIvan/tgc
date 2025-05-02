@@ -10,6 +10,12 @@ const showProfile = (username = null, email = null) => {
 
     themeChangeHandler("theme-container");
     setupLogoutButton();
+    document.addEventListener("submit", (event) => {
+        if (event.target.id === "profile-form") {
+            updateProfile(event);
+        }
+    });
+
 };
 
 const generateProfileHeader = () => {
@@ -23,20 +29,20 @@ const generateProfileHeader = () => {
 
 const generateProfileForm = (username, email) => {
     return `
-        <form id="profile-form" class="needs-validation" novalidate>
+        <form id="profile-form" class="needs-validation" novalidate url="/profile/update" method="PUT">
             <div class="mb-3">
                 <label for="username" class="form-label">Username</label>
-                <input type="text" class="form-control" id="username" placeholder="Username" required value="${username}">
+                <input type="text" class="form-control" id="username" name="username" placeholder="Username" required value="${username}">
                 <div class="invalid-feedback">Please enter a valid username.</div>
             </div>
             <div class="mb-3">
                 <label for="email" class="form-label">Email</label>
-                <input type="email" class="form-control" id="email" placeholder="Email" required value="${email}">
+                <input type="email" class="form-control" id="email" name="email" placeholder="Email" required value="${email}">
                 <div class="invalid-feedback">Please enter a valid email.</div>
             </div>
             <div class="mb-4">
                 <label for="password" class="form-label">Password</label>
-                <input type="password" class="form-control" id="password" placeholder="Password" required>
+                <input type="password" class="form-control" id="password" name="password" placeholder="Password" required>
                 <div class="invalid-feedback">Please enter your password.</div>
             </div>
             <div class="mb-4">
@@ -130,5 +136,29 @@ const logout = async () => {
         console.error("Logout failed:", request.statusText);
     }
 }
+
+const updateProfile = async (event) => {
+    event.preventDefault();
+    const form = event.target;
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData.entries());
+
+    const request = await fetch(form.getAttribute("url"), {
+        method: form.getAttribute("method"),
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRF-TOKEN": getCookie("csrf_access_token"),
+        },
+        body: JSON.stringify(data),
+    });
+
+    const response = await request.json();
+
+    if (response.success) {
+        window.location.reload();
+    } else {
+        console.error("Update failed:", response.message);
+    }
+};
 
 export { loadProfile };
