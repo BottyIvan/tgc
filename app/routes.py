@@ -1,7 +1,7 @@
 import os
 # Import methods from model files
 from .cards import getAllCards, getCardById, insertCard, deleteCard, editCard
-from .users import insertUser, loggingUser, getUserById
+from .users import insertUser, updateUser, loggingUser, getUserById
 
 # Import Flask and other necessary modules
 from flask import Blueprint, request, render_template, jsonify, make_response
@@ -71,6 +71,32 @@ def profile():
         # Get the user ID from the JWT token
         user_id = get_jwt_identity()
         return jsonify(getUserById(user_id))
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+@main.route("/profile/update", methods=["PUT"])
+@jwt_required(locations=["cookies"])
+def updateProfile():
+    # Get the user ID from the JWT token
+    user_id = get_jwt_identity()
+    # Check if the user ID is valid
+    if not user_id:
+        return jsonify({"error": "User ID is required"}), 400
+    # Check if the user exists
+    try:
+        user = getUserById(user_id)
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+    try:
+        # Get the updated data from the request
+        data = request.get_json()
+        data['user_id'] = user_id
+        # Update the user in the database
+        # and return the updated user data
+        return jsonify(updateUser(data))
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
